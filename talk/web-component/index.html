@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SSC+ Talk: Web Component</title>
+    <!-- The whole component in one file, from npm through jsDelivr. Pin the version. -->
+    <script src="https://cdn.jsdelivr.net/npm/@ssc-plus/talk-element@0.1.0"></script>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Oirearvio</h1>
+    <ssc-talk></ssc-talk>
+    <p id="result" hidden></p>
+
+    <script type="module">
+      const talk = document.querySelector('ssc-talk')
+      const shown = document.querySelector('#result')
+
+      // Your server creates the session and gives the page its token.
+      const { session, token, voiceUrl } = await (await fetch('/api/sessions', { method: 'POST' })).json()
+      talk.setAttribute('voice-url', voiceUrl)
+      talk.setAttribute('token', token)
+
+      // Optional: your own words for the interface's texts.
+      talk.labels = { start: 'Aloita oirearvio' }
+
+      // When the result is shown, your server reads the full result from SSC+.
+      talk.addEventListener('ssc-result', async () => {
+        const result = await (await fetch(`/api/sessions/${session}`)).json()
+        shown.textContent = `Your server read the result: ${result.status}, urgency ${result.triage_code}/10.`
+        shown.hidden = false
+      })
+    </script>
+  </body>
+</html>
